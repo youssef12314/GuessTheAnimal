@@ -1,4 +1,4 @@
-const tree = {
+let tree = {
     question: "Er det en pattedyr?",
     yes: {
         question: "har det fire ben?",
@@ -45,20 +45,23 @@ function displayQuestion(node) {
     const yesButton = document.getElementById("yesButton");
     const noButton = document.getElementById("noButton");
 
-    // Event listener for 'Ja' knappen
-    yesButton.addEventListener("click", function() {
+    // Remove previous event listeners
+    yesButton.removeEventListener("click", handleYesClick);
+    noButton.removeEventListener("click", handleNoClick);
+
+    // Define the event handler functions
+    function handleYesClick() {
         if (node.yes !== null) {
+            currentNode = node.yes;
             displayQuestion(node.yes);
         } else {
-            // Computeren har gættet dyret
             questionElement.textContent = "Jeg gættede dyret!";
-            // Tilføj logik til at starte Del II
         }
-    });
+    }
 
-    // Event listener for 'Nej' knappen
-    noButton.addEventListener("click", function() {
+    function handleNoClick() {
         if (node.no !== null) {
+            currentNode = node.no;
             displayQuestion(node.no);
         } else {
             // Computeren kunne ikke gætte dyret
@@ -66,29 +69,44 @@ function displayQuestion(node) {
             // Kald funktionen learnFromMistake
             learnFromMistake();
         }
-    });
-}
+    }
 
+    // Add the event listeners
+    yesButton.addEventListener("click", handleYesClick);
+    noButton.addEventListener("click", handleNoClick);
+}
 // Funktion til at håndtere brugerens input, når computeren ikke kan gætte dyret
 function learnFromMistake() {
     const correctAnimal = prompt("Hvilket dyr var der tale om?");
-    if (correctAnimal === null || correctAnimal.trim() === "") {
-        alert("Du skal angive et gyldigt dyr.");
-        return;
-    }
+    if (correctAnimal === null) return; // Stop the execution if the user hasn't provided an input
+    console.log(correctAnimal); // Log the input
+
     const newQuestion = prompt("Hvilket spørgsmål kunne stilles efter det sidste for at identificere dyret korrekt?");
-    if (newQuestion === null || newQuestion.trim() === "") {
-        alert("Du skal angive et gyldigt spørgsmål.");
-        return;
-    }
+    if (newQuestion === null) return; // Stop the execution if the user hasn't provided an input
+    console.log(newQuestion); // Log the input
+
+    const oldQuestion = currentNode.question;
+
+    const newAnimalNode = { question: "Er det en " + correctAnimal + "?", yes: null, no: null };
+
+
     // Opdater træstrukturen baseret på brugerens input
     currentNode.question = newQuestion;
-    currentNode.yes = { question: "Er det en " + correctAnimal + "?", yes: null, no: null };
-    currentNode.no = { ...currentNode };
+    currentNode.yes = newAnimalNode;
+    currentNode.no = { question: oldQuestion, yes: null, no: null };
 
     console.log("Træstrukturen er blevet opdateret:");
     console.log(tree);
 }
+const originalTree = JSON.parse(JSON.stringify(tree));
+
+const restartButton = document.getElementById("restartButton");
+
+restartButton.addEventListener("click", function() {
+    tree = JSON.parse(JSON.stringify(originalTree));
+    currentNode = tree;
+    startGame();
+});
 
 // Start spillet
 startGame();
